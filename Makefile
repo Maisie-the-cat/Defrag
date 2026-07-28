@@ -1,4 +1,3 @@
-# Makefile for ext4_defrag
 CC = g++
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic
 LDFLAGS = 
