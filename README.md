@@ -31,17 +31,20 @@ make
 ```
 
 This will compile the universal defragmenter:
-- **defrag** - Universal command-line defragmentation tool
+- **defrag** - Universal command-line defragmentation tool (with MS-DOS style GUI)
 
 ## Usage
 
 ```bash
-# Defragment a specific file
+# Run the GUI defragmenter for a specific file or directory
 sudo ./defrag /home/user/large_file.iso
-
-# Defragment an entire directory recursively
-sudo ./defrag /mnt/data_drive
 ```
+# To exit the GUI, press 'q'.
+```
+
+## MS-DOS Style GUI
+
+The tool now features an interactive MS-DOS style graphical user interface built with ncurses. It provides a visual representation of the disk map, real-time progress updates, and a status area, mimicking the classic defragmentation programs of the MS-DOS era.
 
 ## License
 

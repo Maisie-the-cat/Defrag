@@ -1,9 +1,9 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic
-LDFLAGS = 
+LDFLAGS = -lncurses
 
 TARGET = defrag
-SRCS = defrag.cpp
+SRCS = defrag_gui.cpp defrag_core.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)
