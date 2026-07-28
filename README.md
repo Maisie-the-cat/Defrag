@@ -34,6 +34,10 @@ cd defrag
 make
 ```
 
+This will compile both:
+- ext4_defrag - Command-line version
+- ext4_defrag_gui - GUI version (linked with ncurses)
+
 ## Usage
 
 ### CLI Version
