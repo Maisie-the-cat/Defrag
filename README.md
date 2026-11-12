@@ -1,58 +1,44 @@
-# Defrag
+# Universal Defrag
 
-Filesystem defragmentation tool for ext4 on Linux. This C++ program checks and defragments ext4 filesystems, assuming root access.
+A Linux C++17 utility with an ncurses interface for processing files. It uses native filesystem interfaces where implemented and refuses some unsafe or unsupported replacements rather than risking user data.
 
-## Two Versions Available
+## Implemented methods and limits
 
-- **ext4_defrag** - Command-line version for scripting and automation
-- **ext4_defrag_gui** - MS-DOS style GUI version with visual disk representation
+- **Ext4**: attempts online extent movement with the kernel `EXT4_IOC_MOVE_EXT` interface. It can fail when the filesystem lacks suitable donor space or permissions.
+- **Btrfs**: requests file defragmentation with the kernel `BTRFS_IOC_DEFRAG_RANGE` interface.
+- **XFS**: calls `xfs_fsr` from xfsprogs for the specified regular file. It does not run a whole-filesystem pass. `xfs_fsr` may report no improvement or fail if there is insufficient free space, quota, or access.
+- **Other filesystems**: uses a best-effort same-directory copy-and-rename fallback for regular files with one link. That does not guarantee contiguous allocation or reduced fragmentation.
+- The copy fallback refuses symlinks, non-regular files, and files with multiple hard links. It checks read/write/metadata errors, copies extended attributes, synchronizes the replacement, and atomically renames it only after completion. Filesystem-specific metadata that cannot be copied causes the operation to fail without replacing the source.
+- The progress map is a UI visualization, not a physical disk map or fragmentation measurement.
 
-## Features
-
-### CLI Version
-- Fragmentation Analysis: Checks current fragmentation level of ext4 filesystems
-- Automatic Defragmentation: Defragments when fragmentation exceeds threshold
-- Multiple Methods: Uses e4defrag, online defrag ioctl, and file-by-file approaches
-- SSD Optimization: Includes fstrim support for SSD devices
-
-### GUI Version
-- Retro MS-DOS Style Interface: Visual disk representation with colored blocks
-- Real-time Progress: Animated progress bars and status messages
-- Interactive Controls: Press any key to start, Q to cancel
-- Visual Feedback: Shows fragmentation analysis and defragmentation in progress
+Defragmentation may change file layout and should be used only with a current backup. Do not run this utility against raw devices or directories whose contents you do not intend to process.
 
 ## Requirements
 
-- Linux system with ext4 filesystem
-- Root access (sudo)
-- Required packages: g++, e2fsprogs, util-linux, libncurses5-dev
+- Linux
+- C++17 compiler and GNU Make
+- ncurses development headers and library (`libncurses-dev` on Debian/Ubuntu)
+- xfsprogs installed to process XFS files (`xfs_fsr` must be on `PATH`)
+- Permissions appropriate for the target file and filesystem operation
 
-## Building
+## Build and test
 
 ```bash
-cd defrag
 make
+make test
 ```
 
-This will compile both:
-- ext4_defrag - Command-line version
-- ext4_defrag_gui - GUI version (linked with ncurses)
+The `make test` target runs focused tests for content preservation, the old temporary-name collision case, refusal to replace multiply-linked files, and safe XFS utility invocation.
 
 ## Usage
 
-### CLI Version
 ```bash
-sudo ./ext4_defrag /
-sudo ./ext4_defrag / --check
-sudo ./ext4_defrag /home -t 20
+./defrag /path/to/file
+./defrag /path/to/directory
 ```
 
-### GUI Version
-```bash
-sudo ./ext4_defrag_gui /
-sudo ./ext4_defrag_gui /home
-```
+The program scans directories recursively. Press `q` to leave the UI; an in-progress file operation is allowed to finish before the program exits.
 
 ## License
 
-GNU General Public License v3 - see LICENSE file for details.
+GNU General Public License v3; see [LICENSE](LICENSE).

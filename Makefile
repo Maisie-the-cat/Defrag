@@ -1,29 +1,28 @@
-CC = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic
-LDFLAGS = 
-TARGET = ext4_defrag
-TARGET_GUI = ext4_defrag_gui
+CXX ?= g++
+CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic -pthread
+LDFLAGS ?= -pthread
+LDLIBS ?= -lncurses
 
-SRC = ext4_defrag.cpp
-SRC_GUI = ext4_defrag_gui.cpp
-OBJ = ext4_defrag.o
-OBJ_GUI = ext4_defrag_gui.o
+TARGET = defrag
+SRCS = defrag_gui.cpp defrag_core.cpp
+OBJS = $(SRCS:.cpp=.o)
+TEST_TARGET = core_tests
 
-all: $(TARGET) $(TARGET_GUI)
+all: $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
 
-$(TARGET_GUI): $(OBJ_GUI)
-	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -lncurses
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ): $(SRC)
-	$(CC) $(CXXFLAGS) -c $< -o $@
+$(TEST_TARGET): tests/core_tests.cpp defrag_core.cpp
+	$(CXX) $(CXXFLAGS) -o $@ tests/core_tests.cpp $(LDFLAGS)
 
-$(OBJ_GUI): $(SRC_GUI)
-	$(CC) $(CXXFLAGS) -c $< -o $@
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
 
 clean:
-	rm -f $(OBJ) $(OBJ_GUI) $(TARGET) $(TARGET_GUI)
+	rm -f $(OBJS) $(TARGET) $(TEST_TARGET)
 
-.PHONY: all clean
+.PHONY: all clean test
