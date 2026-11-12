@@ -1,20 +1,28 @@
-CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic
-LDFLAGS = -lncurses
+CXX ?= g++
+CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra -Wpedantic -pthread
+LDFLAGS ?= -pthread
+LDLIBS ?= -lncurses
 
 TARGET = defrag
 SRCS = defrag_gui.cpp defrag_core.cpp
 OBJS = $(SRCS:.cpp=.o)
+TEST_TARGET = core_tests
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean:
-	rm -f $(OBJS) $(TARGET)
+$(TEST_TARGET): tests/core_tests.cpp defrag_core.cpp
+	$(CXX) $(CXXFLAGS) -o $@ tests/core_tests.cpp $(LDFLAGS)
 
-.PHONY: all clean
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+clean:
+	rm -f $(OBJS) $(TARGET) $(TEST_TARGET)
+
+.PHONY: all clean test

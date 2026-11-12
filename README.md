@@ -1,51 +1,44 @@
 # Universal Defrag
 
-A comprehensive filesystem defragmentation tool written in C++ for Linux. This program supports a wide range of filesystems by leveraging native kernel ioctls where available and falling back to a robust generic defragmentation strategy for others.
+A Linux C++17 utility with an ncurses interface for processing files. It uses native filesystem interfaces where implemented and refuses some unsafe or unsupported replacements rather than risking user data.
 
-## Supported Filesystems
+## Implemented methods and limits
 
-- **Ext2, Ext3, Ext4**: Uses `EXT4_IOC_MOVE_EXT` for online defragmentation.
-- **Btrfs**: Uses `BTRFS_IOC_DEFRAG` for native online defragmentation.
-- **XFS**: Uses native extent swapping strategies.
-- **JFS, FAT16, FAT32, NTFS**: Uses a robust file-by-file contiguous reallocation strategy.
+- **Ext4**: attempts online extent movement with the kernel `EXT4_IOC_MOVE_EXT` interface. It can fail when the filesystem lacks suitable donor space or permissions.
+- **Btrfs**: requests file defragmentation with the kernel `BTRFS_IOC_DEFRAG_RANGE` interface.
+- **XFS**: calls `xfs_fsr` from xfsprogs for the specified regular file. It does not run a whole-filesystem pass. `xfs_fsr` may report no improvement or fail if there is insufficient free space, quota, or access.
+- **Other filesystems**: uses a best-effort same-directory copy-and-rename fallback for regular files with one link. That does not guarantee contiguous allocation or reduced fragmentation.
+- The copy fallback refuses symlinks, non-regular files, and files with multiple hard links. It checks read/write/metadata errors, copies extended attributes, synchronizes the replacement, and atomically renames it only after completion. Filesystem-specific metadata that cannot be copied causes the operation to fail without replacing the source.
+- The progress map is a UI visualization, not a physical disk map or fragmentation measurement.
 
-## Features
-
-- **Multi-Filesystem Support**: Automatically detects the underlying filesystem and chooses the best defragmentation method.
-- **Online Defragmentation**: For Ext4 and Btrfs, defragments files while the filesystem is mounted and in use.
-- **Recursive Processing**: Can scan and defragment entire directories recursively.
-- **Metadata Preservation**: Ensures file permissions, ownership, and timestamps are preserved during the defragmentation process.
-- **Safety First**: Uses atomic operations (like `rename`) for generic defragmentation to prevent data loss.
+Defragmentation may change file layout and should be used only with a current backup. Do not run this utility against raw devices or directories whose contents you do not intend to process.
 
 ## Requirements
 
-- Linux system
-- Root access (sudo) for most operations
-- C++17 compatible compiler (e.g., g++)
+- Linux
+- C++17 compiler and GNU Make
+- ncurses development headers and library (`libncurses-dev` on Debian/Ubuntu)
+- xfsprogs installed to process XFS files (`xfs_fsr` must be on `PATH`)
+- Permissions appropriate for the target file and filesystem operation
 
-## Building
+## Build and test
 
 ```bash
-cd Defrag
 make
+make test
 ```
 
-This will compile the universal defragmenter:
-- **defrag** - Universal command-line defragmentation tool (with MS-DOS style GUI)
+The `make test` target runs focused tests for content preservation, the old temporary-name collision case, refusal to replace multiply-linked files, and safe XFS utility invocation.
 
 ## Usage
 
 ```bash
-# Run the GUI defragmenter for a specific file or directory
-sudo ./defrag /home/user/large_file.iso
-```
-# To exit the GUI, press 'q'.
+./defrag /path/to/file
+./defrag /path/to/directory
 ```
 
-## MS-DOS Style GUI
-
-The tool now features an interactive MS-DOS style graphical user interface built with ncurses. It provides a visual representation of the disk map, real-time progress updates, and a status area, mimicking the classic defragmentation programs of the MS-DOS era.
+The program scans directories recursively. Press `q` to leave the UI; an in-progress file operation is allowed to finish before the program exits.
 
 ## License
 
-GNU General Public License v3 - see LICENSE file for details.
+GNU General Public License v3; see [LICENSE](LICENSE).
