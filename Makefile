@@ -7,6 +7,7 @@ TARGET = defrag
 SRCS = defrag_gui.cpp defrag_core.cpp
 OBJS = $(SRCS:.cpp=.o)
 TEST_TARGET = core_tests
+XATTR_TEST_TARGET = xattr_tests
 
 all: $(TARGET)
 
@@ -19,10 +20,14 @@ $(TARGET): $(OBJS)
 $(TEST_TARGET): tests/core_tests.cpp defrag_core.cpp
 	$(CXX) $(CXXFLAGS) -o $@ tests/core_tests.cpp $(LDFLAGS)
 
-test: $(TEST_TARGET)
+$(XATTR_TEST_TARGET): tests/xattr_tests.cpp defrag_core.cpp
+	$(CXX) $(CXXFLAGS) -o $@ tests/xattr_tests.cpp $(LDFLAGS)
+
+test: $(TEST_TARGET) $(XATTR_TEST_TARGET)
 	./$(TEST_TARGET)
+	./$(XATTR_TEST_TARGET)
 
 clean:
-	rm -f $(OBJS) $(TARGET) $(TEST_TARGET)
+	rm -f $(OBJS) $(TARGET) $(TEST_TARGET) $(XATTR_TEST_TARGET)
 
 .PHONY: all clean test
