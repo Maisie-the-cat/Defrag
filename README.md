@@ -1,57 +1,50 @@
-# Defrag
+# Universal Defrag
 
-Filesystem defragmentation tool for ext4 on Linux. This C++ program checks and defragments ext4 filesystems, assuming root access.
+A comprehensive filesystem defragmentation tool written in C++ for Linux. This program supports a wide range of filesystems by leveraging native kernel ioctls where available and falling back to a robust generic defragmentation strategy for others.
 
-## Two Versions Available
+## Supported Filesystems
 
-- **ext4_defrag** - Command-line version for scripting and automation
-- **ext4_defrag_gui** - MS-DOS style GUI version with visual disk representation
+- **Ext2, Ext3, Ext4**: Uses `EXT4_IOC_MOVE_EXT` for online defragmentation.
+- **Btrfs**: Uses `BTRFS_IOC_DEFRAG` for native online defragmentation.
+- **XFS**: Uses native extent swapping strategies.
+- **JFS, FAT16, FAT32, NTFS**: Uses a robust file-by-file contiguous reallocation strategy.
 
 ## Features
 
-### CLI Version
-- Fragmentation Analysis: Checks current fragmentation level of ext4 filesystems
-- Automatic Defragmentation: Defragments when fragmentation exceeds threshold
-- Multiple Methods: Uses e4defrag, online defrag ioctl, and file-by-file approaches
-- SSD Optimization: Includes fstrim support for SSD devices
-
-### GUI Version
-- Retro MS-DOS Style Interface: Visual disk representation with colored blocks
-- Real-time Progress: Animated progress bars and status messages
-- Interactive Controls: Press any key to start, Q to cancel
-- Visual Feedback: Shows fragmentation analysis and defragmentation in progress
+- **Multi-Filesystem Support**: Automatically detects the underlying filesystem and chooses the best defragmentation method.
+- **Online Defragmentation**: For Ext4 and Btrfs, defragments files while the filesystem is mounted and in use.
+- **Recursive Processing**: Can scan and defragment entire directories recursively.
+- **Metadata Preservation**: Ensures file permissions, ownership, and timestamps are preserved during the defragmentation process.
+- **Safety First**: Uses atomic operations (like `rename`) for generic defragmentation to prevent data loss.
 
 ## Requirements
 
-- Linux system with ext4 filesystem
-- Root access (sudo)
-- Required packages: g++, e2fsprogs, util-linux, libncurses5-dev
+- Linux system
+- Root access (sudo) for most operations
+- C++17 compatible compiler (e.g., g++)
 
 ## Building
 
 ```bash
-cd defrag
+cd Defrag
 make
 ```
 
-This will compile both:
-- ext4_defrag - Command-line version
-- ext4_defrag_gui - GUI version (linked with ncurses)
+This will compile the universal defragmenter:
+- **defrag** - Universal command-line defragmentation tool (with MS-DOS style GUI)
 
 ## Usage
 
-### CLI Version
 ```bash
-sudo ./ext4_defrag /
-sudo ./ext4_defrag / --check
-sudo ./ext4_defrag /home -t 20
+# Run the GUI defragmenter for a specific file or directory
+sudo ./defrag /home/user/large_file.iso
+```
+# To exit the GUI, press 'q'.
 ```
 
-### GUI Version
-```bash
-sudo ./ext4_defrag_gui /
-sudo ./ext4_defrag_gui /home
-```
+## MS-DOS Style GUI
+
+The tool now features an interactive MS-DOS style graphical user interface built with ncurses. It provides a visual representation of the disk map, real-time progress updates, and a status area, mimicking the classic defragmentation programs of the MS-DOS era.
 
 ## License
 
